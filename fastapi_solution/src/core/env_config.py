@@ -4,15 +4,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class RedisSettings(BaseSettings):
     model_config = SettingsConfigDict(extra='ignore', env_file='.env')
 
-    redis_host: str
-    redis_port: int
+    REDIS_HOST: str
+    REDIS_PORT: int
 
 
 class ElasticsearchSettings(BaseSettings):
     model_config = SettingsConfigDict(extra='allow', env_file='.env')
 
-    es_host: str
-    es_port: int
+    ELASTIC_HOST: str
+    ELASTIC_PORT: int
 
 
 class Settings(BaseSettings):

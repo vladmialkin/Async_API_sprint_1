@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "async-api-sprint-1"
+version = "0.1.0"
+description = ""
+authors = ["vladmialkin <myalkin.vlad@yandex.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.111.1"
+redis = "^5.0.7"
+elasticsearch = "^8.14.0"
+pydantic-settings = "^2.3.4"
+uvicorn = {extras = ["all"], version = "^0.30.3"}
+aiohttp = "^3.9.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
