@@ -50,14 +50,14 @@ services:
       - new_network
 
   elasticsearch:
-    container_name: 'elasticsearch_db'
+    container_name: 'elasticsearch'
     image: elasticsearch:8.14.3
     env_file:
       - ../fastapi_solution/.env
     volumes:
       - ./data/elasticsearch:/data
     ports:
-      - "${ELASTIC_PORT}:9200"
+      - "9200:9200"
     networks:
       - new_network
 
