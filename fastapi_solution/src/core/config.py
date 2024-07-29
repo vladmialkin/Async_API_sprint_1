@@ -2,15 +2,18 @@ import os
 from logging import config as logging_config
 
 from .logger import LOGGING
-
+from .env_config import Settings, RedisSettings, ElasticsearchSettings
 logging_config.dictConfig(LOGGING)
 
-PROJECT_NAME = os.getenv('PROJECT_NAME', 'movies')
+settings = Settings()
+PROJECT_NAME = settings.project_name
 
-REDIS_HOST = os.getenv('REDIS_HOST', '127.0.0.1')
-REDIS_PORT = int(os.getenv('REDIS_PORT', 6379))
+redis_settings = RedisSettings()
+REDIS_HOST = redis_settings.REDIS_HOST
+REDIS_PORT = redis_settings.REDIS_PORT
 
-ELASTIC_HOST = os.getenv('ELASTIC_HOST', '127.0.0.1')
-ELASTIC_PORT = int(os.getenv('ELASTIC_PORT', 9200))
+es_settings = ElasticsearchSettings()
+ELASTIC_HOST = es_settings.ELASTIC_HOST
+ELASTIC_PORT = es_settings.ELASTIC_PORT
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
