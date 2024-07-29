@@ -1,0 +1,66 @@
+services:
+  postgres:
+    container_name: 'postgres_db'
+    build:
+      context: ..
+      dockerfile: Dockerfile_postgres
+    environment:
+      TZ: "Europe/Moscow"
+      PGTZ: "Europe/Moscow"
+    expose:
+      - "5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - new_network
+
+  backend:
+    container_name: 'backend'
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    command: "uvicorn fastapi_solution.main:app --reload --host 0.0.0.0 --port ${API_PORT}"
+    env_file:
+      - ../fastapi_solution/.env
+    volumes:
+      - ../fastapi_solution/:/fastapi_solution/
+    depends_on:
+      - redis
+      - elasticsearch
+      - postgres
+    networks:
+      - new_network
+
+  redis:
+    container_name: 'redis_db'
+    image: redis:7.2.5
+    restart: always
+    ports:
+      - "${REDIS_PORT}:6379"
+    env_file:
+      - ../fastapi_solution/.env
+    networks:
+      - new_network
+
+  elasticsearch:
+    container_name: 'elasticsearch_db'
+    image: elasticsearch:8.14.3
+    env_file:
+      - ../fastapi_solution/.env
+    volumes:
+      - ./data/elasticsearch:/data
+    ports:
+      - "${ELASTIC_PORT}:9200"
+    networks:
+      - new_network
+
+networks:
+  new_network:
+    external: True

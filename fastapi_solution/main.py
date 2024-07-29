@@ -1,12 +1,13 @@
-from src.api.v1 import films
-from src.core import config
-from src.db import elastic, redis
+from typing import List
+
+from fastapi_solution.src.api.v1 import films
+from fastapi_solution.src.core import config
+from fastapi_solution.src.db import elastic, redis
 
 from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 from elasticsearch import AsyncElasticsearch
-
 
 app = FastAPI(
     title=config.PROJECT_NAME,
