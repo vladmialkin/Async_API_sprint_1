@@ -8,13 +8,17 @@ from fastapi import FastAPI
 from fastapi.responses import ORJSONResponse
 from redis.asyncio import Redis
 from elasticsearch import AsyncElasticsearch
+from fastapi_pagination import add_pagination
 
 app = FastAPI(
     title=config.PROJECT_NAME,
     docs_url='/api/openapi',
     openapi_url='/api/openapi.json',
     default_response_class=ORJSONResponse,
+    description="Информация о фильмах, жанрах и людях, участвовавших в создании произведения"
 )
+
+add_pagination(app)
 
 
 @app.on_event('startup')

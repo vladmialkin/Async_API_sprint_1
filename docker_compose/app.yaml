@@ -60,6 +60,17 @@ services:
       - "9200:9200"
     networks:
       - new_network
+  kibana:
+    container_name: 'kibana'
+    image: kibana:7.17.9
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS="http://elasticsearch:9200"
+    depends_on:
+      - elasticsearch
+    networks:
+      - new_network
 
 networks:
   new_network:

@@ -17,6 +17,11 @@ LOGGING = {
             '()': 'uvicorn.logging.AccessFormatter',
             'fmt': "%(levelprefix)s %(client_addr)s - '%(request_line)s' %(status_code)s",
         },
+        "generic": {
+                    "format": "%(asctime)s[%(name)s][%(levelname)s] %(message)s",
+                    "datefmt": "[%Y-%m-%d %H:%M:%S]",
+                    "class": "logging.Formatter",
+        }
     },
     'handlers': {
         'console': {
@@ -34,8 +39,19 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'stream': 'ext://sys.stdout',
         },
+        "main": {
+            "class": "logging.handlers.RotatingFileHandler",
+            "formatter": "generic",
+            "filename": 'main.log',
+            "maxBytes": 5000000,
+            "backupCount": 3,
+        }
     },
     'loggers': {
+        "main": {
+                "level": 'INFO',
+                "handlers": ["main"],
+        },
         '': {
             'handlers': LOG_DEFAULT_HANDLERS,
             'level': 'INFO',
