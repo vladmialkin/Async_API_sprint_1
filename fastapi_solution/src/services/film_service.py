@@ -37,14 +37,6 @@ class FilmService:
             return None
 
     async def get_all_films(self) -> Optional[list[FilmRequest]]:
-        # films = await self._all_films_from_cache()
-        #
-        # if not films:
-        #     films = await self._get_from_elastic_all_films()
-        #     if not films:
-        #         return None
-        #     await self._put_all_films_to_cache(films)
-
         films = await self._get_from_elastic_all_films()
         if not films:
             return None

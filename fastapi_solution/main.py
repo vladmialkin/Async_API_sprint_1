@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi_solution.src.api.v1 import films
 from fastapi_solution.src.core import config
 from fastapi_solution.src.db import elastic, redis

@@ -24,11 +24,12 @@ services:
     build:
       context: ..
       dockerfile: Dockerfile
-    ports:
-      - "${API_PORT}:${API_PORT}"
-    command: "uvicorn fastapi_solution.main:app --reload --host 0.0.0.0 --port ${API_PORT}"
     env_file:
       - ../fastapi_solution/.env
+    ports:
+      - 8000:8000
+    command: "uvicorn fastapi_solution.main:app --reload --host 0.0.0.0 --port 8000"
+
     volumes:
       - ../fastapi_solution/:/fastapi_solution/
     depends_on:
@@ -43,7 +44,7 @@ services:
     image: redis:7.2.5
     restart: always
     ports:
-      - "${REDIS_PORT}:6379"
+      - "6379:6379"
     env_file:
       - ../fastapi_solution/.env
     networks:
@@ -60,6 +61,7 @@ services:
       - "9200:9200"
     networks:
       - new_network
+
   kibana:
     container_name: 'kibana'
     image: kibana:7.17.9
