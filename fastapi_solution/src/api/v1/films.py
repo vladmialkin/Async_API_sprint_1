@@ -1,10 +1,11 @@
 import logging
 from http import HTTPStatus
 from typing import Optional, Literal
+from datetime import datetime
 
 from ...services.film_service import FilmService, get_film_service
 
-from ...models.models import FilmResponseById, FilmResponseByRating
+from ...models.models import FilmResponse, FilmResponseByRating
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_pagination import Page, paginate
 
@@ -14,12 +15,12 @@ log = logging.getLogger('main')
 
 
 @router.get('/id/{film_id}',
-            response_model=FilmResponseById,
+            response_model=FilmResponse,
             summary="Поиск фильма по id",
             description="Получение информации по id",
             response_description="Полная информация по фильму"
             )
-async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> FilmResponseById:
+async def film_details(film_id: str, film_service: FilmService = Depends(get_film_service)) -> FilmResponse:
     log.info(f'Получение информации по фильму с id: {film_id} ...')
     film = await film_service.get_by_id(film_id)
 
@@ -29,16 +30,16 @@ async def film_details(film_id: str, film_service: FilmService = Depends(get_fil
 
     log.info(f'Информация по фильму с id: {film_id} получена.')
 
-    return FilmResponseById(id=film.id,
-                            title=film.title,
-                            imdb_rating=film.imdb_rating,
-                            description=film.description,
-                            creation_date=film.creation_date,
-                            genres=film.genres,
-                            actors=film.actors,
-                            directors=film.directors,
-                            writers=film.writers
-                            )
+    return FilmResponse(id=film.id,
+                        title=film.title,
+                        imdb_rating=film.imdb_rating,
+                        description=film.description,
+                        creation_date=film.creation_date,
+                        genres=film.genres,
+                        actors=film.actors,
+                        directors=film.directors,
+                        writers=film.writers
+                        )
 
 
 @router.get('/rating/{film_rating}',
@@ -70,7 +71,7 @@ async def films(film_service: FilmService = Depends(get_film_service),
                 rating: Optional[float] = Query(None),
                 creation_date: Optional[str] = Query(None),
                 sort_by: Optional[Literal['imdb_rating', 'creation_date']] = Query(None)
-                ) -> Page[FilmResponseById]:
+                ) -> Page[FilmResponse]:
     log.info(f'Получение фильмов ...')
     films_list = await film_service.get_all_films()
 
@@ -78,15 +79,15 @@ async def films(film_service: FilmService = Depends(get_film_service),
         log.info(f'Фильмы не найдены.')
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='film not found')
 
-    films_list = [FilmResponseById(id=cls.id,
-                                   title=cls.title,
-                                   imdb_rating=cls.imdb_rating if cls.imdb_rating is not None else 0,
-                                   creation_date=cls.creation_date if cls.creation_date is not None else '2000-01-01',
-                                   genres=cls.genres,
-                                   description=cls.description,
-                                   directors=cls.directors,
-                                   actors=cls.actors,
-                                   writers=cls.writers)
+    films_list = [FilmResponse(id=cls.id,
+                               title=cls.title,
+                               imdb_rating=cls.imdb_rating if cls.imdb_rating is not None else 0,
+                               creation_date=cls.creation_date if cls.creation_date is not None else str(datetime.min),
+                               genres=cls.genres,
+                               description=cls.description,
+                               directors=cls.directors,
+                               actors=cls.actors,
+                               writers=cls.writers)
                   for cls in films_list]
 
     # Фильтрация по рейтингу

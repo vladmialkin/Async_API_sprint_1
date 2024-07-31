@@ -12,6 +12,7 @@ fastapi-pagination = "^0.12.26"
 redis = "^5.0.7"
 elasticsearch = "^8.14.0"
 pydantic-settings = "^2.3.4"
+orjson = "^3.10.6"
 uvicorn = {extras = ["all"], version = "^0.30.3"}
 aiohttp = "^3.9.5"
 

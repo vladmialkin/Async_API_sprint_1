@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -6,11 +6,11 @@ from pydantic import BaseModel
 class FilmRequest(BaseModel):
     id: str
     title: str
-    imdb_rating: Union[float, None]
-    creation_date: Union[str, None]
-    genres: list[str]
-    description: Union[str, None]
-    # file_path: Union[str, None]
+    imdb_rating: Optional[float]
+    creation_date: Optional[str]
+    genres: list[dict[str, Optional[str]]]
+    description: Optional[str]
+    file_path: Optional[dict]
     directors_names: list[str]
     actors_names: list[str]
     writers_names: list[str]
@@ -19,13 +19,13 @@ class FilmRequest(BaseModel):
     writers: list[dict[str, str]]
 
 
-class FilmResponseById(BaseModel):
+class FilmResponse(BaseModel):
     id: str
     title: str
-    imdb_rating: Union[float, None]
-    creation_date: Union[str, None]
-    genres: list[str]
-    description: Union[str, None]
+    imdb_rating: Optional[float]
+    creation_date: Optional[str]
+    genres: list[dict[str, Optional[str]]]
+    description: Optional[str]
     directors: list[dict[str, str]]
     actors: list[dict[str, str]]
     writers: list[dict[str, str]]
@@ -34,7 +34,7 @@ class FilmResponseById(BaseModel):
 class FilmResponseByRating(BaseModel):
     id: str
     title: str
-    imdb_rating: Union[float, None]
+    imdb_rating: Optional[float]
 
 
 class Genre(BaseModel):

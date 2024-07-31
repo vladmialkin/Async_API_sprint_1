@@ -35,6 +35,7 @@ class FilmService:
         films = await self._get_from_elastic_by_rating(film_rating)
         if not films:
             return None
+        return films
 
     async def get_all_films(self) -> Optional[list[FilmRequest]]:
         films = await self._get_from_elastic_all_films()

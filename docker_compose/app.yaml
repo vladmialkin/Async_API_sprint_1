@@ -7,10 +7,12 @@ services:
     environment:
       TZ: "Europe/Moscow"
       PGTZ: "Europe/Moscow"
+    env_file:
+      - ../fastapi_solution/.env
     expose:
       - "5432"
     healthcheck:
-      test: [ "CMD", "pg_isready" ]
+      test: [ "CMD", "pg_isready -U app -d movies_database" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -61,6 +63,9 @@ services:
       - "9200:9200"
     networks:
       - new_network
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
 
   kibana:
     container_name: 'kibana'
@@ -74,6 +79,21 @@ services:
     networks:
       - new_network
 
+  etl:
+    container_name: 'etl'
+    restart: always
+    build:
+      context: ..
+      dockerfile: Dockerfile_etl
+    env_file:
+      - ../fastapi_solution/.env
+    volumes:
+      - ../fastapi_solution/:/fastapi_solution/
+    depends_on:
+      - elasticsearch
+      - postgres
+    networks:
+      - new_network
+
 networks:
   new_network:
-    external: True
