@@ -1,5 +1,3 @@
-# спокойно переживать падение PostgreSQL;
-# начинать читать с последней обработанной записи.
 import logging
 from typing import Tuple, Union
 
@@ -19,9 +17,7 @@ PERSON_FILM_WORK = 'person_film_work'
 
 
 class PostgresExtractor:
-    """
-    данные, полученные из Postgres, преобразуются во внутренний формат.
-    """
+    """Получение данных из Postgres, преобразование во внутренний формат, передача в Elasticsearch."""
     def __init__(self, es_loader: ElasticsearchLoader, data_transformer: DataTransform):
         self.load_data = es_loader
         self.data_transformer = data_transformer
@@ -43,8 +39,9 @@ class PostgresExtractor:
 
     @backoff()
     def make_db_connection(self, dsn):
+        self.logger.info('Подключение к Postgres...')
+
         try:
-            self.logger.info('Подключаемся к Postgres...')
             connection = psycopg.connect(**dsn, row_factory=dict_row)
             self.logger.info('Соединение с Postgres установлено')
         except psycopg.OperationalError:
@@ -61,7 +58,6 @@ class PostgresExtractor:
             'host': self.host,
             'port': self.port
         }
-        self.logger.info(dsn)
         self.conn = self.make_db_connection(dsn)
         self.cursor = self.conn.cursor()
 
