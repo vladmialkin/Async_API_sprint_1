@@ -1,6 +1,7 @@
+import os
 import json
 import logging
-import os
+from typing import Optional
 
 from .backoff import backoff
 from .settings import ElasticsearchSettings
@@ -12,19 +13,24 @@ from elasticsearch.helpers import bulk
 
 
 class ElasticsearchLoader:
-    """
-    забирает данные в подготовленном формате и загружает их в Elasticsearch.
-    """
+    """Загрузка данных в подготовленном формате в Elasticsearch."""
     def __init__(self):
         self.host = None
         self.port = None
         self.connection = None
+        self.file_name = 'index.json'
         self.index_name = 'movies'
         self.logger = logging.getLogger('es')
 
         self.init_env()
         self.set_connection()
         self.create_index()
+
+    @staticmethod
+    def get_file_path(file_name: str, path: str) -> str:
+        for root, dirs, files in os.walk(path):
+            if file_name in files:
+                return os.path.join(root, file_name)
 
     def init_env(self):
         settings = ElasticsearchSettings()
@@ -34,8 +40,9 @@ class ElasticsearchLoader:
 
     @backoff()
     def make_es_connection(self):
+        self.logger.info('Подключение к Elasticsearch...')
+
         try:
-            self.logger.info('Подключение к Elasticsearch...')
             connection = Elasticsearch(f'http://{self.host}:{self.port}')
             if not connection.ping():
                 connection = None
@@ -44,15 +51,18 @@ class ElasticsearchLoader:
         except elastic_transport.ConnectionError as err:
             connection = None
             self.logger.exception(f"Ошибка подключения к Elasticsearch!!!\n{err}")
+
         return connection
 
     def set_connection(self):
         self.connection = self.make_es_connection()
 
-    def get_index_schema(self) -> dict:
+    def get_index_schema(self) -> Optional[dict]:
+        file_path = self.get_file_path(self.file_name, '.')
+
         try:
-            with open('/opt/etl/index.json', 'r') as f:
-                return json.load(f)
+            with open(file_path, 'r') as file:
+                return json.load(file)
         except FileNotFoundError as err:
             self.logger.exception(err)
 
@@ -60,6 +70,9 @@ class ElasticsearchLoader:
         self.logger.info(f'Creating an index {self.index_name}')
 
         mappings = self.get_index_schema()
+
+        if mappings is None:
+            self.logger.warning('Index will be created without settings and mappings!')
 
         try:
             response = self.connection.indices.create(index=self.index_name, body=mappings)
