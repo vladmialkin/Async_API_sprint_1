@@ -1,5 +1,6 @@
 import logging
 from typing import Optional
+from datetime import datetime as dt
 from functools import lru_cache
 
 from ..db.elastic import get_elastic
@@ -31,16 +32,20 @@ class FilmService:
 
         return film
 
-    async def get_by_rating(self, film_rating: str) -> Optional[list[FilmRequest]]:
-        films = await self._get_from_elastic_by_rating(film_rating)
-        if not films:
-            return None
-        return films
-
     async def get_all_films(self) -> Optional[list[FilmRequest]]:
         films = await self._get_from_elastic_all_films()
+
         if not films:
             return None
+
+        return films
+
+    async def get_by_search(self, search_text) -> Optional[list[FilmRequest]]:
+        films = await self._get_from_elastic_by_search(search_text)
+
+        if not films:
+            return None
+
         return films
 
     async def _get_from_elastic_by_id(self, film_id: str) -> Optional[FilmRequest]:
@@ -50,17 +55,42 @@ class FilmService:
             return None
         return FilmRequest(**doc['_source'])
 
-    async def _get_from_elastic_by_rating(self, film_rating: str) -> Optional[list[FilmRequest]]:
+    async def _get_from_elastic_all_films(self) -> Optional[list[FilmRequest]]:
         try:
-            docs = await self.elastic.search(index=self.index, size=1000, query={"match": {"imdb_rating": film_rating}})
-            movies_list = [FilmRequest(**dict_['_source']) for dict_ in docs['hits']['hits']]
+            docs = await self.elastic.search(index=self.index, size=1000, query={"match_all": {}})
+            movies_list = [
+                FilmRequest(
+                    id=dict_['_source']['id'],
+                    title=dict_['_source']['title'],
+                    imdb_rating=dict_['_source']['imdb_rating'] if dict_['_source']['imdb_rating'] is not None else 0,
+                    creation_date=dict_['_source']['creation_date'] if dict_['_source']['creation_date'] is not None
+                    else str(dt.min),
+                    genres=dict_['_source']['genres'],
+                    description=dict_['_source']['description'],
+                    file_path=dict_['_source']['file_path'],
+                    directors_names=dict_['_source']['directors_names'],
+                    actors_names=dict_['_source']['actors_names'],
+                    writers_names=dict_['_source']['writers_names'],
+                    directors=dict_['_source']['directors'],
+                    actors=dict_['_source']['actors'],
+                    writers=dict_['_source']['writers'],
+                )
+                for dict_ in docs['hits']['hits']
+            ]
         except NotFoundError:
             return None
         return movies_list
 
-    async def _get_from_elastic_all_films(self) -> Optional[list[FilmRequest]]:
+    async def _get_from_elastic_by_search(self, search_text) -> Optional[list[FilmRequest]]:
         try:
-            docs = await self.elastic.search(index=self.index, size=1000, query={"match_all": {}})
+            docs = await self.elastic.search(index=self.index, size=1000, query={
+                "match": {
+                    "title": {
+                        "query": search_text,
+                        "fuzziness": "auto"
+                    }
+                }
+            })
             movies_list = [FilmRequest(**dict_['_source']) for dict_ in docs['hits']['hits']]
         except NotFoundError:
             return None

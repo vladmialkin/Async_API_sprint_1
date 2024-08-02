@@ -19,7 +19,7 @@ class FilmRequest(BaseModel):
     writers: list[dict[str, str]]
 
 
-class FilmResponse(BaseModel):
+class FilmFullResponse(BaseModel):
     id: str
     title: str
     imdb_rating: Optional[float]
@@ -31,7 +31,7 @@ class FilmResponse(BaseModel):
     writers: list[dict[str, str]]
 
 
-class FilmResponseByRating(BaseModel):
+class FilmResponse(BaseModel):
     id: str
     title: str
     imdb_rating: Optional[float]
