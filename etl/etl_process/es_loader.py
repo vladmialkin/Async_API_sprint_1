@@ -57,25 +57,27 @@ class ElasticsearchLoader:
     def set_connection(self):
         self.connection = self.make_es_connection()
 
-    def get_index_schema(self) -> Optional[dict]:
-        file_path = self.get_file_path(self.file_name, '.')
+    def get_index_schema(self, file) -> Optional[dict]:
+        file_path = self.get_file_path(file, '.')
 
         try:
-            with open(file_path, 'r') as file:
-                return json.load(file)
+            with open(file_path, 'r') as f:
+                return json.load(f)
         except FileNotFoundError as err:
             self.logger.exception(err)
 
     def create_index(self):
         self.logger.info(f'Creating an index {self.index_name}')
 
-        mappings = self.get_index_schema()
+        mappings = self.get_index_schema(self.file_name)
+        mappings_persons = self.get_index_schema('index_genres.json')
 
         if mappings is None:
             self.logger.warning('Index will be created without settings and mappings!')
 
         try:
             response = self.connection.indices.create(index=self.index_name, body=mappings)
+            response = self.connection.indices.create(index='persons', body=mappings_persons)
             if response.body['acknowledged']:
                 self.logger.info(f'Index {self.index_name} created')
         except elasticsearch.BadRequestError as err:
@@ -101,12 +103,35 @@ class ElasticsearchLoader:
                 "writers": movie.writers
             }
 
+    def generate_persons(self, data: list):
+        for person in data:
+            yield {
+                "_index": 'index_genres.json',
+                "_id": person.id,
+                "id": person.id,
+                "full_name": person.full_name,
+                "films": person.films
+            }
+
     def index_documents(self, index_documents):
         self.logger.info('Indexing documents...')
         success, errors = None, None
 
         try:
             success, errors = bulk(self.connection, self.generate_data(index_documents))
+        except elastic_transport.SerializationError as err:
+            self.logger.exception(err)
+        except elasticsearch.helpers.BulkIndexError as err:
+            self.logger.exception(err)
+
+        return success, errors
+
+    def index_persons(self, index_documents):
+        self.logger.info('Indexing documents...')
+        success, errors = None, None
+
+        try:
+            success, errors = bulk(self.connection, self.generate_persons(index_documents))
         except elastic_transport.SerializationError as err:
             self.logger.exception(err)
         except elasticsearch.helpers.BulkIndexError as err:
