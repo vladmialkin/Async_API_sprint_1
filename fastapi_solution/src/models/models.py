@@ -56,3 +56,11 @@ class Director(BaseModel):
 class Writer(BaseModel):
     id: str
     full_name: str
+
+
+class Person(BaseModel):
+    id: str
+    full_name: str
+    actor: list[FilmResponse] | None
+    writer: list[FilmResponse] | None
+    director: list[FilmResponse] | None
