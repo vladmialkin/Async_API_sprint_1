@@ -40,7 +40,7 @@ class FilmResponse(BaseModel):
 class Genre(BaseModel):
     id: str
     name: str
-    description: str
+    description: str | None
 
 
 class Actor(BaseModel):
