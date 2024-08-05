@@ -25,9 +25,13 @@ if __name__ == '__main__':
         last_updated = state.get_state('state_key') or str(datetime.min)
         logger.info(f'last_updated: {last_updated}')
 
-        pg_extractor.fetch_changed_genres(last_updated)
-        pg_extractor.fetch_changed_persons(last_updated)
-        pg_extractor.fetch_changed_films(last_updated)
+        # 'movies'
+        pg_extractor.fetch_movies_if_genres_changed(last_updated)
+        pg_extractor.fetch_movies_if_persons_changed(last_updated)
+        pg_extractor.fetch_movies_if_films_changed(last_updated)
+
+        # 'persons'
+        pg_extractor.fetch_persons_if_persons_changed(last_updated)
 
         state.set_state('state_key', str(datetime.now()))
 
