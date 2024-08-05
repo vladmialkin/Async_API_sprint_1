@@ -37,16 +37,10 @@ class FilmResponse(BaseModel):
     imdb_rating: Optional[float]
 
 
-class GenreRequest(BaseModel):
+class Genre(BaseModel):
     id: str
     name: str
     description: str | None
-
-
-class GenreResponse(BaseModel):
-    id: str
-    name: str
-    description: str
 
 
 class PersonRequest(BaseModel):

@@ -106,7 +106,7 @@ class ElasticsearchLoader:
     def generate_persons(self, data: list):
         for person in data:
             yield {
-                "_index": 'index_genres.json',
+                "_index": 'persons',
                 "_id": person.id,
                 "id": person.id,
                 "full_name": person.full_name,
