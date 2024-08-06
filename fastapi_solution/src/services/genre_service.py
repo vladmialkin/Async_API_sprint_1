@@ -2,6 +2,8 @@ import logging
 from typing import Optional
 from functools import lru_cache
 
+from pydantic import ValidationError
+
 from ..db.elastic import get_elastic
 from ..db.redis import get_redis
 from ..models.models import Genre
@@ -137,9 +139,18 @@ class GenreService:
         keys = await self.redis.keys('*')
         if not keys:
             return None
+
         data = await self.redis.mget(keys)
 
-        genres = [Genre.parse_raw(item) for item in data if item is not None]
+        genres = []
+        for item in data:
+            if item is not None:
+                try:
+                    genre = Genre.parse_raw(item)
+                    genres.append(genre)
+                except ValidationError as e:
+                    self.log.error(f'Ошибка при парсинге жанра из данных: {item}. Ошибка: {e}')
+
         self.log.info(f'redis: get {len(genres)} genres')
         return genres if genres else None
 
