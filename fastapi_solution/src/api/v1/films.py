@@ -1,12 +1,12 @@
 import logging
 from http import HTTPStatus
-from typing import Optional, Literal
+from typing import Literal, Optional
 
-from ...services.film_service import FilmService, get_film_service
-
-from ...models.models import FilmFullResponse, FilmResponse
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_pagination import Page, paginate
+
+from ...models.models import FilmFullResponse, FilmResponse
+from ...services.film_service import FilmService, get_film_service
 
 router = APIRouter()
 

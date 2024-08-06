@@ -1,6 +1,6 @@
-import sys
 import logging
 import logging.config
+import sys
 from os import getenv
 
 
