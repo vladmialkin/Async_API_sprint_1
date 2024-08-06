@@ -24,8 +24,8 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ../fastapi_solution/.env
-    ports:
-      - 8000:8000
+    expose:
+      - "8000"
     command: "uvicorn fastapi_solution.main:app --reload --host 0.0.0.0 --port 8000"
 
     volumes:
@@ -55,8 +55,8 @@ services:
       - ../fastapi_solution/.env
     volumes:
       - ./data/elasticsearch:/data
-    ports:
-      - "9200:9200"
+    expose:
+      - "9200"
     networks:
       - new_network
 
@@ -86,6 +86,20 @@ services:
     depends_on:
       - elasticsearch
       - postgres
+    networks:
+      - new_network
+
+  proxy:
+    container_name: 'nginx'
+    image: nginx
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/configs:/etc/nginx/conf.d:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: always
     networks:
       - new_network
 
