@@ -78,15 +78,6 @@ async def films(
     if sort_by is not None:
         films_list = sorted(films_list, key=lambda f: f.imdb_rating, reverse=True)
 
-    films_list = [
-        FilmResponse(
-            id=cls.id,
-            title=cls.title,
-            imdb_rating=cls.imdb_rating if cls.imdb_rating is not None else 0,
-            )
-        for cls in films_list
-    ]
-
     log.info(f'Получено {len(films_list)} фильмов.')
     return paginate(films_list)
 

@@ -97,3 +97,4 @@ services:
 
 networks:
   new_network:
+    external: True
