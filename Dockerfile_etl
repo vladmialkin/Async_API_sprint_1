@@ -2,9 +2,6 @@ FROM python:3.11
 
 WORKDIR /opt/
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-
 COPY etl/ etl/
 
 RUN  pip install --no-cache-dir --upgrade pip \

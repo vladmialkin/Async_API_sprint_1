@@ -3,7 +3,6 @@ FROM python:3.12.4-slim-bullseye
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-
 RUN apt update -y && \
     apt install -y python3-dev \
     gcc \
