@@ -115,7 +115,7 @@ class FilmService:
         await self.redis.set(film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_all_films_to_cache(self, films):
-        data = {i.json() for i in films}
+        data = {film.id: film.json() for film in films}
         await self.redis.mset(data)
 
 
