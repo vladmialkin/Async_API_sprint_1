@@ -1,13 +1,13 @@
 import logging
 from typing import Tuple, Union
 
-from .transform_data import DataTransform
-from .es_loader import ElasticsearchLoader
-from .backoff import backoff
-from .settings import PostgresSettings
-
 import psycopg
 from psycopg.rows import dict_row
+
+from .backoff import backoff
+from .es_loader import ElasticsearchLoader
+from .settings import PostgresSettings
+from .transform_data import DataTransform
 
 GENRE = 'genre'
 FILM_WORK = 'film_work'

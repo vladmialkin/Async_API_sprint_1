@@ -168,3 +168,6 @@ cython_debug/
 data
 
 state_file.json
+
+*.env
+*.sql

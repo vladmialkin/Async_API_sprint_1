@@ -1,15 +1,15 @@
-import os
 import json
 import logging
+import os
 from typing import Optional
+
+import elastic_transport
+import elasticsearch
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
 
 from .backoff import backoff
 from .settings import ElasticsearchSettings
-
-import elasticsearch
-import elastic_transport
-from elasticsearch import Elasticsearch
-from elasticsearch.helpers import bulk
 
 
 class ElasticsearchLoader:
