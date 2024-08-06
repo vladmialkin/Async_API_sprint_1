@@ -1,10 +1,11 @@
 import logging
 from http import HTTPStatus
+
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi_pagination import Page, paginate
 
-from ...services.genre_service import GenreService, get_genre_service
 from ...models.models import Genre
+from ...services.genre_service import GenreService, get_genre_service
 
 router = APIRouter()
 

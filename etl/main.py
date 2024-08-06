@@ -1,15 +1,13 @@
-import time
 import logging
+import time
 from datetime import datetime
 
 from config.logging_config import init_logging
-
-from state.state import State
-from state.json_file_storage import JsonFileStorage
+from etl_process.es_loader import ElasticsearchLoader
 from etl_process.extract_data import PostgresExtractor
 from etl_process.transform_data import DataTransform
-from etl_process.es_loader import ElasticsearchLoader
-
+from state.json_file_storage import JsonFileStorage
+from state.state import State
 
 if __name__ == '__main__':
     init_logging()

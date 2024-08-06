@@ -1,12 +1,12 @@
 import logging
 from http import HTTPStatus
-from typing import Optional, Literal
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_pagination import Page, paginate
 
-from ...services.person_service import PersonService, get_person_service
 from ...models.models import Person
+from ...services.person_service import PersonService, get_person_service
 
 router = APIRouter()
 

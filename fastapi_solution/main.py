@@ -1,12 +1,12 @@
+from elasticsearch import AsyncElasticsearch
+from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
+from fastapi_pagination import add_pagination
+from redis.asyncio import Redis
+
 from fastapi_solution.src.api.v1 import films, genres, persons
 from fastapi_solution.src.core import config
 from fastapi_solution.src.db import elastic, redis
-
-from fastapi import FastAPI
-from fastapi.responses import ORJSONResponse
-from redis.asyncio import Redis
-from elasticsearch import AsyncElasticsearch
-from fastapi_pagination import add_pagination
 
 app = FastAPI(
     title=config.PROJECT_NAME,
