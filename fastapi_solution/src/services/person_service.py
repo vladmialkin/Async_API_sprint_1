@@ -63,7 +63,7 @@ class PersonService:
             raise HTTPException(status_code=500, detail=f"Ошибка при получении всех персонажей: {str(e)}")
 
     async def _person_from_cache(self, person_id: str) -> Optional[Person]:
-        data = await self.redis.get(person_id)
+        data = await self.redis.get(f"person:{person_id}")
         self.log.info(f'redis: {data}')
         if not data:
             return None
@@ -72,7 +72,7 @@ class PersonService:
         return person
 
     async def _all_persons_from_cache(self):
-        keys = await self.redis.keys('*')
+        keys = await self.redis.keys('person:*')
         if not keys:
             return None
         data = await self.redis.mget(keys)
@@ -82,10 +82,10 @@ class PersonService:
         return persons if persons else None
 
     async def _put_person_to_cache(self, person: Person):
-        await self.redis.set(person.id, person.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
+            await self.redis.set(f"person:{person.id}", person.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_all_persons_to_cache(self, persons: list[Person]):
-        data = {person.id: person.json() for person in persons}
+        data = {f"person:{person.id}": person.json() for person in persons}
         await self.redis.mset(data)
 
 

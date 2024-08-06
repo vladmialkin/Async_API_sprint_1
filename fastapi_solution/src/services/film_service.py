@@ -3,6 +3,8 @@ from typing import Optional
 from datetime import datetime as dt
 from functools import lru_cache
 
+from pydantic import ValidationError
+
 from ..db.elastic import get_elastic
 from ..db.redis import get_redis
 from ..models.models import FilmRequest
@@ -33,10 +35,13 @@ class FilmService:
         return film
 
     async def get_all_films(self) -> Optional[list[FilmRequest]]:
-        films = await self._get_from_elastic_all_films()
+        films = await self._all_films_from_cache()
 
         if not films:
-            return None
+            films = await self._get_from_elastic_all_films()
+            if not films:
+                return None
+            await self._put_all_films_to_cache(films)
 
         return films
 
@@ -97,25 +102,38 @@ class FilmService:
         return movies_list
 
     async def _film_from_cache(self, film_id: str) -> Optional[FilmRequest]:
-        data = await self.redis.get(film_id)
+        data = await self.redis.get(f"film:{film_id}")
         self.log.info(f'redis: {data}')
         if not data:
             return None
 
         film = FilmRequest.parse_raw(data)
+        self.log.info(f'redis: get {film.id} film')
         return film
 
     async def _all_films_from_cache(self):
-        keys = await self.redis.scan()
-        self.log.info(f'keys: {keys}')
-        data = await self.redis.keys(keys[1])
-        self.log.info(f'data: {data}')
+        keys = await self.redis.keys(f"film:*")
+        if not keys:
+            return None
+
+        data = await self.redis.mget(keys)
+
+        films_list = []
+        for item in data:
+            if item is not None:
+                try:
+                    film = FilmRequest.parse_raw(item)
+                    films_list.append(film)
+                except ValidationError as e:
+                    self.log.error(f'Ошибка при парсинге фильмов из данных: {item}. Ошибка: {e}')
+        self.log.info(f'redis: get {len(films_list)} films')
+        return films_list
 
     async def _put_film_to_cache(self, film: FilmRequest):
-        await self.redis.set(film.id, film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(f"film:{film.id}", film.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_all_films_to_cache(self, films):
-        data = {film.id: film.json() for film in films}
+        data = {f"film:{film.id}": film.json() for film in films}
         await self.redis.mset(data)
 
 

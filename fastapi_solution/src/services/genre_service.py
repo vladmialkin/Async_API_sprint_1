@@ -127,7 +127,7 @@ class GenreService:
         return genres_list
 
     async def _genre_from_cache(self, genre_id: str) -> Optional[Genre]:
-        data = await self.redis.get(genre_id)
+        data = await self.redis.get(f"genre:{genre_id}")
         self.log.info(f'redis: {data}')
         if not data:
             return None
@@ -136,7 +136,7 @@ class GenreService:
         return genre
 
     async def _all_genres_from_cache(self):
-        keys = await self.redis.keys('*')
+        keys = await self.redis.keys(f"genre:*")
         if not keys:
             return None
 
@@ -155,10 +155,10 @@ class GenreService:
         return genres if genres else None
 
     async def _put_genre_to_cache(self, genre: Genre):
-        await self.redis.set(genre.id, genre.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
+        await self.redis.set(f"genre:{genre.id}", genre.json(), FILM_CACHE_EXPIRE_IN_SECONDS)
 
     async def _put_all_genres_to_cache(self, genres: list[Genre]):
-        data = {genre.id: genre.json() for genre in genres}
+        data = {f"genre:{genre.id}": genre.json() for genre in genres}
         await self.redis.mset(data)
 
 
