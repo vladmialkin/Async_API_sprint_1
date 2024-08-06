@@ -29,14 +29,11 @@ async def genre_details(
         log.info(f'Персона с id: {person_id} не найдена.')
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Person not found')
 
-    log.info(f'Информация по жанру с id: {person_id} получена.')
+    log.info(f'Информация по персоне с id: {person_id} получена.')
     return Person(
         id=person.id,
         full_name=person.full_name,
-        actor=person.actor,
-        writer=person.writer,
-        director=person.director,
-
+        films=person.films,
     )
 
 
@@ -48,4 +45,20 @@ async def genre_details(
 )
 async def persons(person_service: PersonService = Depends(get_person_service)) -> Page[Person]:
     log.info('Получение персон ...')
-    pass
+    persons_list = await person_service.get_all_persons()
+
+    if not persons:
+        log.info(f'Персон не найдено.')
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Persons not found')
+
+    persons_list = [
+        Person(
+            id=cls.id,
+            full_name=cls.full_name,
+            films=cls.films,
+        )
+        for cls in persons_list
+    ]
+
+    log.info(f'Получено {len(persons_list)} персон.')
+    return paginate(persons_list)

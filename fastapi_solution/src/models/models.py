@@ -43,13 +43,7 @@ class Genre(BaseModel):
     description: str | None
 
 
-class PersonRequest(BaseModel):
-    id: str
-    full_name: str
-    films: list
-
-
-class PersonResponse(BaseModel):
+class Person(BaseModel):
     id: str
     full_name: str
     films: list
@@ -68,11 +62,3 @@ class Director(BaseModel):
 class Writer(BaseModel):
     id: str
     full_name: str
-
-
-class Person(BaseModel):
-    id: str
-    full_name: str
-    actor: list[FilmResponse] | None
-    writer: list[FilmResponse] | None
-    director: list[FilmResponse] | None

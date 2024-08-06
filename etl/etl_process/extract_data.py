@@ -1,6 +1,4 @@
 import logging
-import pprint
-import time
 from typing import Tuple, Union
 
 from .transform_data import DataTransform
@@ -202,19 +200,6 @@ class PostgresExtractor:
 
         while True:
             changed_films_chunk = self.cursor.fetchmany(1000)
-            # {'film_id': UUID('bfe61bd9-5dfd-41ca-80ae-8eca998bc29d'),
-            #  'full_name': 'John Sayles',
-            #  'person_id': UUID('0031feab-8f53-412a-8f53-47098a60ac73'),
-            #  'role': 'writer'}
-            #
-            # {'film_id': UUID('bfe61bd9-5dfd-41ca-80ae-8eca998bc29d'),
-            #  'full_name': 'John Sayles',
-            #  'person_id': UUID('0031feab-8f53-412a-8f53-47098a60ac73'),
-            #  'role': 'director'}
-            # print(222222222222222)
-            # for i in changed_films_chunk[:10]:
-            #     print()
-            #     pprint.pprint(i)
 
             if not changed_films_chunk:
                 break

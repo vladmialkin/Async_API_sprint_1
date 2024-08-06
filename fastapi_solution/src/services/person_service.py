@@ -6,7 +6,7 @@ from ..db.elastic import get_elastic
 from ..db.redis import get_redis
 from ..models.models import Person
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException
 from redis.asyncio import Redis
 from elasticsearch import AsyncElasticsearch, NotFoundError
 
@@ -24,7 +24,7 @@ class PersonService:
         person = await self._person_from_cache(person_id)
 
         if not person:
-            person = await self._get_from_elastic_by_id(person)
+            person = await self._get_from_elastic_by_id(person_id)
             if not person:
                 return None
             await self._put_person_to_cache(person)
@@ -44,79 +44,23 @@ class PersonService:
 
     async def _get_from_elastic_by_id(self, person_id: str) -> Optional[Person]:
         try:
-            get_person_by_id_query = {
-                "query": {
-                    "bool": {
-                        "must": {
-                            "term": {
-                                "actors.id": person_id
-                            }
-                        },
-                        "must_not": {
-                            "exists": {
-                                "field": "actors.id"
-                            }
-                        }
-                    }
-                }
-            }
-            docs = await self.elastic.search(index=self.index, body=get_person_by_id_query)
-
-            if docs['hits']['total']['value'] > 0:
-                for hit in docs['hits']['hits']:
-                    for actor in hit['_source'].get('actors', []):
-                        if actor['id'] == person_id:
-                            return Person(
-                                id=actor['id'],
-                                full_name=actor['name'],
-                                actor=[{'id': hit['_id']}],
-                                writer=None,
-                                director=None
-                            )
-                    for director in hit['_source'].get('directors', []):
-                        if director['id'] == person_id:
-                            return Person(
-                                id=director['id'],
-                                full_name=director['name'],
-                                actor=None,
-                                writer=None,
-                                director=[{'id': hit['_id']}]
-                            )
-                    for writer in hit['_source'].get('writers', []):
-                        if writer['id'] == person_id:
-                            return Person(
-                                id=writer['id'],
-                                full_name=writer['name'],
-                                actor=None,
-                                writer=[{'id': hit['_id']}],
-                                director=None
-                            )
-
-        except NotFoundError:
-            return None
-        return None
+            response = await self.elastic.get(index='persons', id=person_id)
+            return Person(**response["_source"])
+        except Exception as e:
+            print(f"Ошибка при поиске по ID: {e}")
 
     async def _get_from_elastic_all_persons(self) -> Optional[list[Person]]:
         try:
-            docs = await self.elastic.search(index=self.index, body={})
+            response = await self.elastic.search(index="persons", body={
+                "query": {
+                    "match_all": {}
+                }
+            })
+            # Возвращаем список документов
+            return [Person(**hit["_source"]) for hit in response['hits']['hits']]
 
-            genres_list = []
-
-            buckets = docs['aggregations']['genres']['unique_genres']['buckets']
-            for bucket in buckets:
-                if bucket['doc_count'] > 0:
-                    genre_hits = bucket['genre_details']['hits']['hits']
-                    if genre_hits:
-                        genre_data = genre_hits[0]['_source']
-                        genre = Person(
-                            id=genre_data['id'],
-                            name=genre_data['name'],
-                            description=genre_data['description']
-                        )
-                        genres_list.append(genre)
-        except NotFoundError:
-            return None
-        return genres_list
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Ошибка при получении всех персонажей: {str(e)}")
 
     async def _person_from_cache(self, person_id: str) -> Optional[Person]:
         data = await self.redis.get(person_id)

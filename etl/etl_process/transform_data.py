@@ -1,5 +1,4 @@
 import logging
-import pprint
 
 from pydantic import ValidationError
 
@@ -11,6 +10,7 @@ class DataTransform:
     данные преобразуются из формата Postgres в формат, пригодный для Elasticsearch.
     тот этап можно пропустить, если преобразования не требуется.
     """
+
     def __init__(self):
         self.logger = logging.getLogger('data_transform')
 
@@ -51,11 +51,6 @@ class DataTransform:
         role_set = set()
 
         for dict_ in raw_data:
-            # pprint.pprint(dict_)
-            # print()
-            # print(f"person_id: {dict_['person_id']}")
-            # films_list = person_schema.setdefault('films', [])
-            # print(f'films_list: {films_list}')
             person_schema.setdefault('full_name', dict_['full_name'])
             person_id = person_schema.setdefault('id', str(dict_['person_id']))
 
@@ -65,7 +60,7 @@ class DataTransform:
                 film_id = film_schema.setdefault('id', str(dict_['film_id']))
                 if film_id == str(dict_['film_id']):
                     role_set.add(dict_['role'])
-                    film_schema.update({'roles': [role for role in role_set]})  # {id: 123, roles: ['actor', 'writer']}
+                    film_schema.update({'roles': [role for role in role_set]})
                 else:
                     if film_schema not in films_list:
                         films_list.append(film_schema)
@@ -74,45 +69,20 @@ class DataTransform:
                     film_schema.setdefault('id', str(dict_['film_id']))
                     role_set.add(dict_['role'])
                     film_schema.update({'roles': [role for role in role_set]})
-                    # print('film_schema', film_schema)
             else:
-                # print(111, films_list)
                 if film_schema not in films_list:
                     films_list.append(film_schema)
-                # print(222, films_list)
-                # print(f'films_list: {films_list}')
                 person_schema.update({'films': films_list})
-                # print(f'person_schema: {person_schema}')
-                # data_to_transfer.append(person_schema)
                 data_to_transfer.append(Person(**person_schema))
                 person_schema = {}
                 film_schema = {}
                 role_set = set()
 
-                # person_schema.setdefault('full_name', dict_['full_name'])
-
-                film_id = film_schema.setdefault('id', str(dict_['film_id']))  # film_schema = {id: 123}
+                film_id = film_schema.setdefault('id', str(dict_['film_id']))
 
                 if film_id == str(dict_['film_id']):
                     role_set.add(dict_['role'])
-                    film_schema.update({'roles': [role for role in role_set]})  # {id: 123, roles: ['actor']}
-                    # print(f'film_schema: {film_schema}')
-
-
-                # try:
-                #     data_to_transfer.append(Movie(**schema_person))
-                # except ValidationError as err:
-                #     self.logger.exception(err)
-                # schema_person = {}
-                # self.transform_raw_dict_for_persons(schema_person, dict_)
-        # print('----------------------------------------------')
-        # for i in data_to_transfer[:10]:
-        #     print()
-        #     pprint.pprint(i)
-        # try:
-        #     data_to_transfer.append(Person(**person_schema))
-        # except ValidationError as err:
-        #     self.logger.exception(err)
+                    film_schema.update({'roles': [role for role in role_set]})
         return data_to_transfer
 
     @staticmethod
@@ -131,8 +101,8 @@ class DataTransform:
         schema.setdefault('actors', [])
         schema.setdefault('writers', [])
 
-        value = {'id': str(raw_dict['id']), 'name': raw_dict['full_name']}  # for directors/actors/writers
-        value_name = value['name']  # for directors_names/actors_names/writers_names
+        value = {'id': str(raw_dict['id']), 'name': raw_dict['full_name']}
+        value_name = value['name']
         genre_value = {'id': str(raw_dict['g_id']), 'name': raw_dict['name'], 'description': raw_dict['g_description']}
 
         genres_list = schema.setdefault('genres', [genre_value])
@@ -173,14 +143,12 @@ class DataTransform:
         schema.setdefault('full_name', raw_dict['full_name'])
         schema.setdefault('films', [])
 
-        value = {'id': str(raw_dict['id']), 'name': raw_dict['full_name']}  # for directors/actors/writers
-        value_name = value['name']  # for directors_names/actors_names/writers_names
+        value = {'id': str(raw_dict['id']), 'name': raw_dict['full_name']}
         genre_value = {'id': str(raw_dict['g_id']), 'name': raw_dict['name'], 'description': raw_dict['g_description']}
 
-        films_value = {'id': str(raw_dict['film_id']), 'roles': []}  # ['id': 123, 'roles': []]
+        films_value = {'id': str(raw_dict['film_id']), 'roles': []}
 
-        films_list = schema.setdefault('films', [films_value])  # {'id': 123, 'roles': []}
+        films_list = schema.setdefault('films', [films_value])
         if films_value not in films_list:
-            films_list.append(genre_value)  # {'id': 123, 'roles': ['actor']}
-            roles = []
+            films_list.append(genre_value)
             schema.update({'films': films_list})
