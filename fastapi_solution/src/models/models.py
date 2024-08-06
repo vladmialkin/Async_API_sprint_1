@@ -46,7 +46,7 @@ class Genre(BaseModel):
 class Person(BaseModel):
     id: str
     full_name: str
-    films: list
+    films: list[dict]
 
 
 class Actor(BaseModel):

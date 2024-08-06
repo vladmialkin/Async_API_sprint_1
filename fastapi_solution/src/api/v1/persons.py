@@ -1,6 +1,8 @@
 import logging
 from http import HTTPStatus
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Optional, Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi_pagination import Page, paginate
 
 from ...services.person_service import PersonService, get_person_service
@@ -30,11 +32,7 @@ async def genre_details(
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Person not found')
 
     log.info(f'Информация по персоне с id: {person_id} получена.')
-    return Person(
-        id=person.id,
-        full_name=person.full_name,
-        films=person.films,
-    )
+    return person
 
 
 @router.get(
@@ -43,7 +41,10 @@ async def genre_details(
     description='Список персон с пагинацией',
     response_description='Информация по персонам'
 )
-async def persons(person_service: PersonService = Depends(get_person_service)) -> Page[Person]:
+async def persons(
+        person_service: PersonService = Depends(get_person_service),
+        sort_by: Optional[Literal['writer', 'director', 'actor']] = Query(None)
+) -> Page[Person]:
     log.info('Получение персон ...')
     persons_list = await person_service.get_all_persons()
 
@@ -51,14 +52,12 @@ async def persons(person_service: PersonService = Depends(get_person_service)) -
         log.info(f'Персон не найдено.')
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail='Persons not found')
 
-    persons_list = [
-        Person(
-            id=cls.id,
-            full_name=cls.full_name,
-            films=cls.films,
-        )
-        for cls in persons_list
-    ]
+    if sort_by is not None:
+        # получение только тек персон, роли которых совпадают с выбранным
+        persons_list = [
+            person for person in persons_list
+            if any(role == sort_by for film in person.films for role in film['roles'])
+        ]
 
     log.info(f'Получено {len(persons_list)} персон.')
     return paginate(persons_list)
