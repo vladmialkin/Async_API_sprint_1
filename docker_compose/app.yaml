@@ -1,0 +1,100 @@
+services:
+  postgres:
+    container_name: 'postgres_db'
+    build:
+      context: ..
+      dockerfile: Dockerfile_postgres
+    environment:
+      TZ: "Europe/Moscow"
+      PGTZ: "Europe/Moscow"
+    env_file:
+      - ../fastapi_solution/.env
+    expose:
+      - "5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready -U app -d movies_database" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - new_network
+
+  backend:
+    container_name: 'backend'
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    env_file:
+      - ../fastapi_solution/.env
+    ports:
+      - 8000:8000
+    command: "uvicorn fastapi_solution.main:app --reload --host 0.0.0.0 --port 8000"
+
+    volumes:
+      - ../fastapi_solution/:/fastapi_solution/
+    depends_on:
+      - redis
+      - elasticsearch
+      - postgres
+    networks:
+      - new_network
+
+  redis:
+    container_name: 'redis_db'
+    image: redis:7.2.5
+    restart: always
+    ports:
+      - "6379:6379"
+    env_file:
+      - ../fastapi_solution/.env
+    networks:
+      - new_network
+
+  elasticsearch:
+    container_name: 'elasticsearch'
+    image: elasticsearch:8.14.3
+    env_file:
+      - ../fastapi_solution/.env
+    volumes:
+      - ./data/elasticsearch:/data
+    ports:
+      - "9200:9200"
+    networks:
+      - new_network
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+
+  kibana:
+    container_name: 'kibana'
+    image: kibana:7.17.9
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS="http://elasticsearch:9200"
+    depends_on:
+      - elasticsearch
+    networks:
+      - new_network
+
+  etl:
+    container_name: 'etl'
+    restart: always
+    build:
+      context: ..
+      dockerfile: Dockerfile_etl
+    env_file:
+      - ../fastapi_solution/.env
+    volumes:
+      - ../fastapi_solution/:/fastapi_solution/
+    depends_on:
+      - elasticsearch
+      - postgres
+    networks:
+      - new_network
+
+networks:
+  new_network:
+    external: True
